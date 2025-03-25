@@ -40,3 +40,25 @@
 .read-the-docs {
   color: #888;
 }
+
+/* 🔽 ESTILOS AÑADIDOS PARA DIETAS Y RUTINAS */
+
+/* Imágenes de ReactQuill */
+.ql-editor img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  border-radius: 8px;
+}
+
+/* Vídeos (iframe de YouTube, etc.) */
+.ql-editor iframe {
+  width: 100% !important;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  display: block;
+  margin: 1rem auto;
+  border-radius: 8px;
+}
