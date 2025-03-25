@@ -3,11 +3,40 @@ import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Menu } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+
+// 🔽 Barra de herramientas personalizada con íconos de imagen y vídeo
+const modules = {
+  toolbar: [
+    [{ header: [1, 2, false] }],
+    ["bold", "italic", "underline"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    ["link", "image", "video"],
+    ["clean"],
+  ],
+};
+
+const formats = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "list",
+  "bullet",
+  "link",
+  "image",
+  "video",
+];
 
 interface Cliente {
   id: string;
@@ -21,30 +50,6 @@ interface Cliente {
   dieta?: string;
   rutina?: string;
 }
-
-// 🧩 Configuración personalizada para ReactQuill
-const modules = {
-  toolbar: [
-    [{ header: [1, 2, 3, false] }],
-    ["bold", "italic", "underline", "strike"],
-    [{ list: "ordered" }, { list: "bullet" }],
-    ["link", "image", "video"],
-    ["clean"],
-  ],
-};
-
-const formats = [
-  "header",
-  "bold",
-  "italic",
-  "underline",
-  "strike",
-  "list",
-  "bullet",
-  "link",
-  "image",
-  "video",
-];
 
 export default function DashboardEntrenador() {
   const { user } = useAuth();
@@ -68,20 +73,31 @@ export default function DashboardEntrenador() {
     cargarEntrenador();
     cargarEstilo();
   }, [user]);
-  // Cargar clientes
+
   const cargarClientes = async () => {
-    const { data } = await supabase.from("clientes").select("*").eq("entrenador_id", user?.id);
+    const { data } = await supabase
+      .from("clientes")
+      .select("*")
+      .eq("entrenador_id", user?.id);
     setClientes(data || []);
     setClientesFiltrados(data || []);
   };
 
   const cargarEntrenador = async () => {
-    const { data } = await supabase.from("entrenadores").select("*").eq("id", user?.id).single();
+    const { data } = await supabase
+      .from("entrenadores")
+      .select("*")
+      .eq("id", user?.id)
+      .single();
     setDatosEntrenador(data);
   };
 
   const cargarEstilo = async () => {
-    const { data } = await supabase.from("estilos_entrenador").select("*").eq("id", user?.id).single();
+    const { data } = await supabase
+      .from("estilos_entrenador")
+      .select("*")
+      .eq("id", user?.id)
+      .single();
     if (data) setEstilo(data);
   };
 
@@ -107,7 +123,6 @@ export default function DashboardEntrenador() {
   const handleInput = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
   const crearCliente = async () => {
     if (!form.nombre || !form.usuario || !form.password) {
       toast.error("Faltan campos obligatorios.");
@@ -164,6 +179,21 @@ export default function DashboardEntrenador() {
     setMostrarModalDietaRutina(true);
   };
 
+  const cerrarModal = () => {
+    setMostrarModalNuevo(false);
+    setMostrarModalEditar(false);
+    setMostrarModalDietaRutina(false);
+    setModalDietaRutina(null);
+    setEditarCliente(null);
+  };
+
+  useEffect(() => {
+    const filtrados = clientes.filter((cli) =>
+      cli.nombre.toLowerCase().includes(busqueda.toLowerCase())
+    );
+    setClientesFiltrados(filtrados);
+  }, [busqueda, clientes]);
+
   const cerrarSesion = () => {
     window.location.href = "/";
   };
@@ -194,7 +224,7 @@ export default function DashboardEntrenador() {
       .eq("id", editarCliente.id);
 
     if (errorCliente || errorUser) {
-      toast.error("Error al actualizar cliente.");
+      toast.error("Error al actualizar el cliente.");
     } else {
       toast.success("Cliente actualizado correctamente");
       cargarClientes();
@@ -215,21 +245,13 @@ export default function DashboardEntrenador() {
 
     if (error) {
       toast.error("Error al actualizar dieta/rutina.");
-      return;
+    } else {
+      toast.success("Dieta/Rutina actualizada correctamente");
+      setMostrarModalDietaRutina(false);
+      setModalDietaRutina(null);
+      cargarClientes();
     }
-
-    toast.success("Dieta/Rutina actualizada correctamente");
-    setMostrarModalDietaRutina(false);
-    setModalDietaRutina(null);
-    cargarClientes();
   };
-
-  useEffect(() => {
-    const filtrados = clientes.filter((cli) =>
-      cli.nombre.toLowerCase().includes(busqueda.toLowerCase())
-    );
-    setClientesFiltrados(filtrados);
-  }, [busqueda, clientes]);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen"
@@ -237,7 +259,7 @@ export default function DashboardEntrenador() {
         backgroundColor: estilo?.color_secundario || "#f9fafb",
         backgroundImage: estilo?.imagen_fondo ? `url(${estilo.imagen_fondo})` : undefined,
         backgroundSize: "cover",
-        backgroundPosition: "center",
+                backgroundPosition: "center",
       }}
     >
       {/* Menú lateral */}
@@ -264,7 +286,7 @@ export default function DashboardEntrenador() {
         </div>
       )}
 
-      {/* Contenido principal */}
+      {/* Contenido */}
       <main className="flex-1 p-4 space-y-4">
         <div className="rounded-xl p-6 text-white shadow"
           style={{
@@ -292,14 +314,74 @@ export default function DashboardEntrenador() {
             <p><strong>Fecha inicio:</strong> {cli.fecha_inicio || "-"}</p>
             <div className="flex gap-2">
               <Button onClick={() => editarClienteHandler(cli)}>Editar</Button>
-              <Button variant="secondary" onClick={() => dietaRutinaHandler(cli)}>Dieta/Rutina</Button>
+                            <Button variant="secondary" onClick={() => dietaRutinaHandler(cli)}>Dieta/Rutina</Button>
             </div>
           </div>
         ))}
       </main>
 
+      {/* Modal: Nuevo Cliente */}
+      <Dialog open={mostrarModalNuevo} onOpenChange={setMostrarModalNuevo}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Nuevo Cliente</DialogTitle></DialogHeader>
+          <div className="grid gap-3">
+            <label>Nombre</label>
+            <Input name="nombre" onChange={handleInput} />
+            <label>Usuario</label>
+            <Input name="usuario" onChange={handleInput} />
+            <label>Contraseña</label>
+            <Input name="password" onChange={handleInput} />
+            <label>Teléfono</label>
+            <Input name="telefono" onChange={handleInput} />
+            <label>Dirección</label>
+            <Input name="direccion" onChange={handleInput} />
+            <label>Fecha de inicio</label>
+            <Input name="fecha_inicio" type="date" onChange={handleInput} />
+            <label>Observaciones</label>
+            <Input name="observaciones" onChange={handleInput} />
+          </div>
+          <DialogFooter><Button onClick={crearCliente}>Guardar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Editar Cliente */}
+      <Dialog open={!!editarCliente} onOpenChange={() => setMostrarModalEditar(false)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Cliente</DialogTitle></DialogHeader>
+          {editarCliente && (
+            <div className="grid gap-3">
+              <label>Nombre</label>
+              <Input value={editarCliente.nombre} onChange={(e) => setEditarCliente({ ...editarCliente, nombre: e.target.value })} />
+              <label>Usuario</label>
+              <Input value={editarCliente.usuario} onChange={(e) => setEditarCliente({ ...editarCliente, usuario: e.target.value })} />
+              <label>Contraseña</label>
+              <Input value={editarCliente.password || ""} onChange={(e) => setEditarCliente({ ...editarCliente, password: e.target.value })} />
+              <label>Teléfono</label>
+              <Input value={editarCliente.telefono || ""} onChange={(e) => setEditarCliente({ ...editarCliente, telefono: e.target.value })} />
+              <label>Dirección</label>
+              <Input value={editarCliente.direccion || ""} onChange={(e) => setEditarCliente({ ...editarCliente, direccion: e.target.value })} />
+              <label>Fecha de inicio</label>
+              <Input type="date" value={editarCliente.fecha_inicio || ""} onChange={(e) => setEditarCliente({ ...editarCliente, fecha_inicio: e.target.value })} />
+              <label>Observaciones</label>
+              <Input value={editarCliente.observaciones || ""} onChange={(e) => setEditarCliente({ ...editarCliente, observaciones: e.target.value })} />
+            </div>
+          )}
+          <DialogFooter className="flex justify-between pt-4">
+            <Button variant="destructive" onClick={async () => {
+              if (!editarCliente) return;
+              await supabase.from("clientes").delete().eq("id", editarCliente.id);
+              await supabase.from("users").delete().eq("id", editarCliente.id);
+              toast.success("Cliente eliminado correctamente");
+              setEditarCliente(null);
+              cargarClientes();
+            }}>Eliminar</Button>
+            <Button onClick={guardarEdicion}>Guardar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Modal: Dieta/Rutina */}
-      <Dialog open={mostrarModalDietaRutina} onOpenChange={setMostrarModalDietaRutina}>
+      <Dialog open={mostrarModalDietaRutina} onOpenChange={() => setMostrarModalDietaRutina(false)}>
         <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
           <DialogHeader><DialogTitle>Editar Dieta y Rutina</DialogTitle></DialogHeader>
           {modalDietaRutina && (
@@ -311,8 +393,21 @@ export default function DashboardEntrenador() {
                   onChange={(val) =>
                     setModalDietaRutina((prev) => prev ? { ...prev, dieta: val } : null)
                   }
-                  modules={modules}
-                  formats={formats}
+                  modules={{
+                    toolbar: [
+                      [{ header: [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline'],
+                      [{ list: 'ordered' }, { list: 'bullet' }],
+                      ['link', 'image', 'video'],
+                      ['clean']
+                    ]
+                  }}
+                  formats={[
+                    'header',
+                    'bold', 'italic', 'underline',
+                    'list', 'bullet',
+                    'link', 'image', 'video'
+                  ]}
                 />
               </div>
               <div>
@@ -322,13 +417,46 @@ export default function DashboardEntrenador() {
                   onChange={(val) =>
                     setModalDietaRutina((prev) => prev ? { ...prev, rutina: val } : null)
                   }
-                  modules={modules}
-                  formats={formats}
+                  modules={{
+                    toolbar: [
+                      [{ header: [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline'],
+                      [{ list: 'ordered' }, { list: 'bullet' }],
+                      ['link', 'image', 'video'],
+                      ['clean']
+                    ]
+                  }}
+                  formats={[
+                    'header',
+                    'bold', 'italic', 'underline',
+                    'list', 'bullet',
+                    'link', 'image', 'video'
+                  ]}
                 />
               </div>
             </div>
           )}
           <DialogFooter><Button onClick={actualizarDietaRutina}>Guardar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Ajustes (estilo de la app) */}
+      <Dialog open={mostrarAjustes} onOpenChange={setMostrarAjustes}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Ajustes de Estética</DialogTitle></DialogHeader>
+          <div className="grid gap-3">
+            <label>Color Principal</label>
+            <Input type="color" value={estilo?.color_primario} onChange={(e) => setEstilo({ ...estilo, color_primario: e.target.value })} />
+            <label>Color Secundario</label>
+            <Input type="color" value={estilo?.color_secundario} onChange={(e) => setEstilo({ ...estilo, color_secundario: e.target.value })} />
+            <label>Mensaje de Bienvenida</label>
+            <Input value={estilo?.mensaje_bienvenida} onChange={(e) => setEstilo({ ...estilo, mensaje_bienvenida: e.target.value })} />
+            <label>Imagen Cabecera (URL)</label>
+            <Input value={estilo?.imagen_cabecera} onChange={(e) => setEstilo({ ...estilo, imagen_cabecera: e.target.value })} />
+            <label>Imagen Fondo (URL)</label>
+            <Input value={estilo?.imagen_fondo} onChange={(e) => setEstilo({ ...estilo, imagen_fondo: e.target.value })} />
+          </div>
+          <DialogFooter><Button onClick={guardarEstilo}>Guardar Estilo</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
