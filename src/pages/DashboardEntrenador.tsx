@@ -232,9 +232,6 @@ export default function DashboardEntrenador() {
   }, [busqueda, clientes]);
 
   return (
-    // 🔽 Aquí continúa tu JSX (igual que antes) con los <Dialog>, <ReactQuill ... modules={modules} formats={formats} /> y demás...
-  );
-}
     <div className="flex flex-col md:flex-row min-h-screen"
       style={{
         backgroundColor: estilo?.color_secundario || "#f9fafb",
