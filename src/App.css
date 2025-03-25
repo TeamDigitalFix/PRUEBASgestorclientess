@@ -45,20 +45,20 @@
 
 /* Imágenes de ReactQuill */
 .ql-editor img {
-  max-width: 100%;
+  max-width: 80%;
   height: auto;
   display: block;
-  margin: 0 auto;
+  margin: 1.5rem auto;
   border-radius: 8px;
 }
 
 /* Vídeos (iframe de YouTube, etc.) */
 .ql-editor iframe {
-  width: 100% !important;
-  max-width: 100%;
+  width: 80% !important;
+  max-width: 80%;
   height: auto;
   aspect-ratio: 16 / 9;
   display: block;
-  margin: 1rem auto;
+  margin: 1.5rem auto;
   border-radius: 8px;
 }
