@@ -8,7 +8,6 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "0.0.0.0",
     port: 8080,
-    // 👇 Esto evita el error 404 al recargar
     fs: {
       allow: [".."],
     },
@@ -21,6 +20,17 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  optimizeDeps: {
+    include: ["quill-image-resize-module-react"],
+  },
+  build: {
+    commonjsOptions: {
+      include: [/node_modules/],
+    },
+    rollupOptions: {
+      external: [],
     },
   },
 }));
