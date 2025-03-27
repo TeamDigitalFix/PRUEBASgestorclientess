@@ -122,33 +122,39 @@ export default function DashboardCliente() {
         </div>
       </div>
 
-      {/* Botones flotantes */}
-      <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex gap-6 z-50">
-        <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 flex gap-16 z-50 text-white font-semibold text-sm">
-          <div className="text-center w-20">DIETA</div>
-          <div className="text-center w-20">RUTINA</div>
-        </div>
-        <button
-          onClick={() => setMostrarDieta(true)}
-          className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
-        >
-          <img
-            src={estilo?.icono_dieta_url || "https://cdn-icons-png.flaticon.com/512/706/706195.png"}
-            alt="Dieta"
-            className="h-10 w-10"
-          />
-        </button>
-        <button
-          onClick={() => setMostrarRutina(true)}
-          className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
-        >
-          <img
-            src={estilo?.icono_rutina_url || "https://cdn-icons-png.flaticon.com/512/2780/2780119.png"}
-            alt="Rutina"
-            className="h-10 w-10"
-          />
-        </button>
-      </div>
+     {/* Botones flotantes con texto centrado */}
+<div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex gap-14 z-50">
+  {/* Botón DIETA */}
+  <div className="flex flex-col items-center">
+    <span className="text-white text-sm font-semibold mb-2">DIETA</span>
+    <button
+      onClick={() => setMostrarDieta(true)}
+      className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
+    >
+      <img
+        src={estilo?.icono_dieta_url || "https://cdn-icons-png.flaticon.com/512/706/706195.png"}
+        alt="Dieta"
+        className="h-10 w-10"
+      />
+    </button>
+  </div>
+
+  {/* Botón RUTINA */}
+  <div className="flex flex-col items-center">
+    <span className="text-white text-sm font-semibold mb-2">RUTINA</span>
+    <button
+      onClick={() => setMostrarRutina(true)}
+      className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
+    >
+      <img
+        src={estilo?.icono_rutina_url || "https://cdn-icons-png.flaticon.com/512/2780/2780119.png"}
+        alt="Rutina"
+        className="h-10 w-10"
+      />
+    </button>
+  </div>
+</div>
+
 
       {/* Modal Dieta */}
       <Dialog open={mostrarDieta} onOpenChange={setMostrarDieta}>
