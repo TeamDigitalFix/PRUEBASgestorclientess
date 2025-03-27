@@ -124,6 +124,10 @@ export default function DashboardCliente() {
 
       {/* Botones flotantes */}
       <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex gap-6 z-50">
+        <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 flex gap-16 z-50 text-white font-semibold text-sm">
+          <div className="text-center w-20">DIETA</div>
+          <div className="text-center w-20">RUTINA</div>
+        </div>
         <button
           onClick={() => setMostrarDieta(true)}
           className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
