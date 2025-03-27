@@ -165,7 +165,7 @@ export default function DashboardCliente() {
          <div
   className="prose max-w-full p-4 bg-white text-black rounded-lg shadow-inner overflow-y-auto max-h-[60vh] text-base [&_p]:my-1 [&_ul]:my-2 [&_li]:my-1 [&_h1]:mb-2 [&_h2]:mb-2"
   dangerouslySetInnerHTML={{
-    __html: cliente?.rutina || "<p>Sin contenido</p>",
+    __html: cliente?.dieta || "<p>Sin contenido</p>",
   }}
 />
         </DialogContent>
