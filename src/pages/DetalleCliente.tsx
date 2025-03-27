@@ -1,59 +1,24 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/Layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
-import { Cliente, PlanInput } from '@/types/app';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Cliente } from '@/types/app';
 import { Button } from '@/components/ui/button';
-import { Textarea } from "@/components/ui/textarea";
-import { Save, ArrowLeft, User, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
-
-// Schema for validation
-const planSchema = z.object({
-  dieta: z.string().optional(),
-  rutina: z.string().optional(),
-});
+import { AlertTriangle, ArrowLeft, User } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export default function DetalleCliente() {
   const { id } = useParams<{ id: string }>();
-  const { user, getCliente, updateClientePlan } = useAuth();
+  const { user, getCliente } = useAuth();
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const form = useForm<PlanInput>({
-    resolver: zodResolver(planSchema),
-    defaultValues: {
-      dieta: '',
-      rutina: '',
-    },
-  });
-
-  // Load cliente data
   useEffect(() => {
     if (!id) return;
-    
+
     if (user?.role === 'cliente') {
-      toast.error('No tienes permisos para acceder a esta página');
       navigate('/dashboard');
       return;
     }
@@ -61,33 +26,12 @@ export default function DetalleCliente() {
     const clienteData = getCliente(id);
     if (clienteData) {
       setCliente(clienteData);
-      form.reset({
-        dieta: clienteData.dieta || '',
-        rutina: clienteData.rutina || '',
-      });
     } else {
-      toast.error('Cliente no encontrado o no tienes permisos para verlo');
       navigate('/clientes');
     }
-    
+
     setLoading(false);
-  }, [id, user, navigate, getCliente, form]);
-
-  const onSubmit = async (data: PlanInput) => {
-    if (!id) return;
-
-    try {
-      await updateClientePlan(id, data);
-      // Refresh client data
-      const updatedCliente = getCliente(id);
-      if (updatedCliente) {
-        setCliente(updatedCliente);
-      }
-    } catch (error) {
-      // Error is already handled in the context with toast
-      console.error(error);
-    }
-  };
+  }, [id, user, navigate, getCliente]);
 
   if (loading) {
     return (
@@ -108,7 +52,9 @@ export default function DetalleCliente() {
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <AlertTriangle className="h-16 w-16 text-destructive mb-4" />
           <h1 className="text-2xl font-bold mb-2">Cliente no encontrado</h1>
-          <p className="text-muted-foreground mb-4">El cliente que buscas no existe o no tienes permisos para verlo.</p>
+          <p className="text-muted-foreground mb-4">
+            El cliente que buscas no existe o no tienes permisos para verlo.
+          </p>
           <Button onClick={() => navigate('/clientes')}>Volver a clientes</Button>
         </div>
       </DashboardLayout>
@@ -118,8 +64,8 @@ export default function DetalleCliente() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className="mb-4"
           onClick={() => navigate('/clientes')}
         >
@@ -132,62 +78,36 @@ export default function DetalleCliente() {
           <div>
             <h1 className="text-3xl font-bold">{cliente.nombre}</h1>
             <p className="text-muted-foreground">
-              Usuario: {cliente.usuario} | Creado: {new Date(cliente.createdAt).toLocaleDateString('es-ES')}
+              Usuario: {cliente.usuario} | Creado:{' '}
+              {new Date(cliente.createdAt).toLocaleDateString('es-ES')}
             </p>
           </div>
         </div>
       </div>
-
       <Card>
         <CardHeader>
           <CardTitle>Plan Personalizado</CardTitle>
-          <CardDescription>Asigna una dieta y rutina personalizada para este cliente.</CardDescription>
+          <CardDescription>
+            Visualiza la dieta y rutina personalizada asignada a este cliente.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="dieta"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dieta Personalizada</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Escribe aquí la dieta personalizada para este cliente..." 
-                        className="min-h-[150px]"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Dieta Personalizada</h2>
+              <div
+                className="prose max-w-none ql-editor bg-white p-4 rounded shadow"
+                dangerouslySetInnerHTML={{ __html: cliente.dieta || "<p>Sin dieta asignada.</p>" }}
               />
-              <FormField
-                control={form.control}
-                name="rutina"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Rutina de Ejercicios</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Escribe aquí la rutina de ejercicios para este cliente..." 
-                        className="min-h-[150px]"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Rutina de Ejercicios</h2>
+              <div
+                className="prose max-w-none ql-editor bg-white p-4 rounded shadow"
+                dangerouslySetInnerHTML={{ __html: cliente.rutina || "<p>Sin rutina asignada.</p>" }}
               />
-              <div className="flex justify-end">
-                <Button type="submit" className="flex items-center gap-2">
-                  <Save className="h-4 w-4" />
-                  Guardar Plan
-                </Button>
-              </div>
-            </form>
-          </Form>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </DashboardLayout>

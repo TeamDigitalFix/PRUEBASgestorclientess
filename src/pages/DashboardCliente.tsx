@@ -2,263 +2,177 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Settings,
-  LogOut,
-  Phone,
-  MessageSquare,
-} from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { LogOut } from "lucide-react";
+
+interface Cliente {
+  id: string;
+  nombre: string;
+  usuario: string;
+  fecha_inicio?: string;
+  entrenador?: string;
+  dieta?: string;
+  rutina?: string;
+  nombre_entrenador?: string;
+  telefono_entrenador?: string;
+  entrenador_id?: string;
+}
+
+interface Estilo {
+  color_primario: string;
+  color_secundario: string;
+  color_texto: string;
+  imagen_logo: string;
+  imagen_fondo: string;
+  imagen_cabecera: string;
+  mensaje_bienvenida: string;
+  icono_dieta_url?: string;
+  icono_rutina_url?: string;
+}
 
 export default function DashboardCliente() {
-  useEffect(() => {
-    document.documentElement.classList.remove("dark");
-  }, []);
-
   const { user } = useAuth();
-  const [cliente, setCliente] = useState<any>(null);
-  const [estilo, setEstilo] = useState<any>({});
-  const [mostrarPerfil, setMostrarPerfil] = useState(false);
-  const [telefono, setTelefono] = useState("");
-  const [direccion, setDireccion] = useState("");
-  const [mostrarModalEntrenador, setMostrarModalEntrenador] = useState(false);
+  const [cliente, setCliente] = useState<Cliente | null>(null);
+  const [estilo, setEstilo] = useState<Estilo | null>(null);
+  const [mostrarDieta, setMostrarDieta] = useState(false);
+  const [mostrarRutina, setMostrarRutina] = useState(false);
 
   useEffect(() => {
-    const cargarDatos = async () => {
-      if (!user?.id) return;
-
-      const { data: datosCliente } = await supabase
-        .from("clientes")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      setCliente(datosCliente);
-      setTelefono(datosCliente?.telefono || "");
-      setDireccion(datosCliente?.direccion || "");
-
-      // Cargar estilos del entrenador si existe ID
-      if (datosCliente?.entrenador_id) {
-        const { data: estilos } = await supabase
-          .from("estilos_entrenador")
-          .select("*")
-          .eq("id", datosCliente.entrenador_id)
-          .single();
-        if (estilos) setEstilo(estilos);
-      }
-    };
-
-    cargarDatos();
+    if (!user) return;
+    cargarCliente();
   }, [user]);
 
-  const guardarCambios = async () => {
-    if (!cliente) return;
-    const { error } = await supabase
+  const cargarCliente = async () => {
+    const { data } = await supabase
       .from("clientes")
-      .update({ telefono, direccion })
-      .eq("id", cliente.id);
-    if (!error) {
-      const actualizado = { ...cliente, telefono, direccion };
-      setCliente(actualizado);
-      toast.success("Cambios guardados correctamente");
-    } else {
-      toast.error("Error al guardar los cambios");
+      .select("*")
+      .eq("id", user?.id)
+      .single();
+
+    if (data) {
+      setCliente(data);
+      cargarEstilo(data.entrenador_id);
+    }
+  };
+
+  const cargarEstilo = async (entrenadorId: string) => {
+    const { data } = await supabase
+      .from("estilos_entrenador")
+      .select("*")
+      .eq("id", entrenadorId)
+      .single();
+
+    if (data) {
+      setEstilo(data);
     }
   };
 
   const cerrarSesion = () => {
-    window.location.href = "/";
+    window.location.href = "https://rutinaydieta.vercel.app/";
   };
-
-  if (!cliente) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-white">
-        <p className="text-gray-500 text-lg">Cargando tus datos...</p>
-      </div>
-    );
-  }
 
   return (
     <div
-      className="flex flex-col min-h-screen p-4 max-w-7xl mx-auto space-y-6"
+      className="min-h-screen w-full overflow-hidden"
       style={{
-        backgroundColor: estilo?.color_secundario || "#ffffff",
-        backgroundImage: estilo?.imagen_fondo ? `url(${estilo.imagen_fondo})` : "none",
+        backgroundImage: estilo?.imagen_fondo ? `url(${estilo.imagen_fondo})` : undefined,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
-      {/* Encabezado */}
+      {/* Cabecera */}
       <div
-        className="text-white p-6 rounded-2xl shadow-md flex justify-between items-center flex-wrap gap-4"
+        className="mx-6 mt-6 mb-10 rounded-xl text-white p-6 relative shadow-xl"
         style={{
-          backgroundColor: estilo?.color_primario || "#22c55e",
-          backgroundImage: estilo?.imagen_cabecera
-            ? `url(${estilo.imagen_cabecera})`
-            : undefined,
+          backgroundColor: estilo?.color_primario || "#3b82f6",
+          backgroundImage: estilo?.imagen_cabecera ? `url(${estilo.imagen_cabecera})` : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
-        <div>
-          <h2 className="text-2xl font-bold">
-            ¡Hola, {cliente.nombre}!
-          </h2>
-          <p className="text-sm mt-1">
-            {estilo?.mensaje_bienvenida || "Tu panel de seguimiento personalizado"}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setMostrarPerfil(!mostrarPerfil)}
-            className="bg-white text-green-600 hover:bg-gray-100"
-          >
-            <Settings className="h-5 w-5 mr-2" />
-            Ajustes
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={cerrarSesion}
-            className="bg-white text-red-600 hover:bg-gray-100"
-          >
-            <LogOut className="h-5 w-5 mr-2" />
-            Cerrar sesión
-          </Button>
-        </div>
-      </div>
-
-      {/* Ajustes del cliente */}
-      {mostrarPerfil && (
-        <div className="bg-white p-6 rounded-2xl shadow-md space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">
-            ✏️ Editar mi perfil
-          </h2>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">Teléfono</label>
-              <input
-                type="text"
-                value={telefono}
-                onChange={(e) => setTelefono(e.target.value)}
-                className="w-full border rounded px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Dirección</label>
-              <input
-                type="text"
-                value={direccion}
-                onChange={(e) => setDireccion(e.target.value)}
-                className="w-full border rounded px-3 py-2"
-              />
-            </div>
-            <Button onClick={guardarCambios}>Guardar cambios</Button>
-          </div>
-        </div>
-      )}
-
-      {/* Información general + dieta/rutina */}
-      {!mostrarPerfil && (
-        <>
-          <div className="bg-white p-5 rounded-2xl shadow space-y-3">
-            <h3 className="text-xl font-semibold text-gray-800 border-b pb-2">
-              📋 Información general
-            </h3>
-            <div className="text-sm text-gray-600 space-y-1">
-              <p>
-                <strong>📅 Fecha de inicio:</strong>{" "}
-                {cliente.fecha_inicio || "Sin especificar"}
-              </p>
-              <p>
-                <strong>👨‍🏫 Entrenador:</strong>{" "}
-                <span
-                  onClick={() => setMostrarModalEntrenador(true)}
-                  className="text-blue-600 hover:underline cursor-pointer"
-                >
-                  {cliente.nombre_entrenador || "Sin asignar"}
-                </span>
-              </p>
-            </div>
-          </div>
-
-         <Accordion type="multiple" className="space-y-4">
-  <AccordionItem value="dieta">
-    <AccordionTrigger className="bg-gray-100 px-4 py-3 rounded-md font-medium shadow-inner">
-      🥗 <span className="ml-2 text-green-600">Tu dieta actual</span>
-    </AccordionTrigger>
-    <AccordionContent>
-      {cliente.dieta ? (
-        <div className="bg-gray-100 p-4 rounded-md mt-2 shadow-inner">
-          <div
-            className="text-sm text-gray-800 whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{ __html: cliente.dieta }}
-          />
-        </div>
-      ) : (
-        <p className="text-sm text-gray-400 mt-2">No hay dieta asignada aún.</p>
-      )}
-    </AccordionContent>
-  </AccordionItem>
-
-  <AccordionItem value="rutina">
-    <AccordionTrigger className="bg-gray-100 px-4 py-3 rounded-md font-medium shadow-inner">
-      🏋️‍♀️ <span className="ml-2 text-indigo-600">Tu rutina de ejercicios</span>
-    </AccordionTrigger>
-    <AccordionContent>
-      {cliente.rutina ? (
-        <div className="bg-gray-100 p-4 rounded-md mt-2 shadow-inner">
-          <div
-            className="text-sm text-gray-800 whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{ __html: cliente.rutina }}
-          />
-        </div>
-      ) : (
-        <p className="text-sm text-gray-400 mt-2">No hay rutina asignada aún.</p>
-      )}
-    </AccordionContent>
-  </AccordionItem>
-</Accordion>
-
-
-        </>
-      )}
-
-      {/* Modal Entrenador */}
-      <Dialog open={mostrarModalEntrenador} onOpenChange={setMostrarModalEntrenador}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Tu entrenador</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 text-sm text-gray-700">
-            <p><strong>Nombre:</strong> {cliente.nombre_entrenador || "No disponible"}</p>
-            <p><strong>Teléfono:</strong> {cliente.telefono_entrenador || "No disponible"}</p>
-          </div>
-          {cliente.telefono_entrenador && (
-            <DialogFooter className="pt-4">
+        <button
+          onClick={cerrarSesion}
+          className="absolute top-4 right-4 text-white hover:opacity-80 transition"
+          title="Cerrar sesión"
+        >
+          <LogOut className="h-6 w-6" />
+        </button>
+        <div className="flex flex-col items-start justify-start">
+          <h1 className="text-3xl font-bold mb-1">
+            ¡Hola {cliente?.nombre}!
+          </h1>
+          <div className="flex items-center gap-2">
+            <span className="text-sm">
+              Entrenador: {cliente?.nombre_entrenador}
+            </span>
+            {cliente?.telefono_entrenador && (
               <a
                 href={`https://wa.me/${cliente.telefono_entrenador}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Button className="w-full flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" /> Escribir por WhatsApp
-                </Button>
+                <img
+                  src="https://static.vecteezy.com/system/resources/thumbnails/016/716/480/small/whatsapp-icon-free-png.png"
+                  alt="WhatsApp"
+                  className="h-5 w-5"
+                />
               </a>
-            </DialogFooter>
-          )}
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Botones flotantes */}
+      <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex gap-6 z-50">
+        <button
+          onClick={() => setMostrarDieta(true)}
+          className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
+        >
+          <img
+            src={estilo?.icono_dieta_url || "https://cdn-icons-png.flaticon.com/512/706/706195.png"}
+            alt="Dieta"
+            className="h-10 w-10"
+          />
+        </button>
+        <button
+          onClick={() => setMostrarRutina(true)}
+          className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
+        >
+          <img
+            src={estilo?.icono_rutina_url || "https://cdn-icons-png.flaticon.com/512/2780/2780119.png"}
+            alt="Rutina"
+            className="h-10 w-10"
+          />
+        </button>
+      </div>
+
+      {/* Modal Dieta */}
+      <Dialog open={mostrarDieta} onOpenChange={setMostrarDieta}>
+        <DialogContent className="max-w-2xl rounded-xl shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Dieta actual</DialogTitle>
+          </DialogHeader>
+          <div
+            className="prose prose-lg max-w-full p-4 bg-white text-black rounded-lg shadow-inner overflow-y-auto max-h-[60vh]"
+            dangerouslySetInnerHTML={{
+              __html: cliente?.dieta || "<p>Sin contenido</p>",
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Rutina */}
+      <Dialog open={mostrarRutina} onOpenChange={setMostrarRutina}>
+        <DialogContent className="max-w-2xl rounded-xl shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Rutina actual</DialogTitle>
+          </DialogHeader>
+          <div
+            className="prose prose-lg max-w-full p-4 bg-white text-black rounded-lg shadow-inner overflow-y-auto max-h-[60vh]"
+            dangerouslySetInnerHTML={{
+              __html: cliente?.rutina || "<p>Sin contenido</p>",
+            }}
+          />
         </DialogContent>
       </Dialog>
     </div>
