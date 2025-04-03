@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -26,295 +26,117 @@ interface Cliente {
   rutina?: string;
 }
 
-function convertirYoutubeEnEmbeds(html: string): string {
-  const regex = /https:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([\w\-]+)/g;
-  return html.replace(regex, (match, _, __, videoId) => {
-    const src = `https://www.youtube.com/embed/${videoId}`;
-    return `<iframe width="100%" height="315" src="${src}" frameborder="0" allowfullscreen></iframe>`;
-  });
-}
-
 export default function Clientes() {
-  const { user } = useAuth();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
-  const [busqueda, setBusqueda] = useState("");
-  const [cargando, setCargando] = useState(false);
-
-  const quillRefDieta = useRef<ReactQuill>(null);
-  const quillRefRutina = useRef<ReactQuill>(null);
-
-  const insertarImagen = (quillRef: React.RefObject<ReactQuill>) => {
-    const url = prompt("Pega el enlace de la imagen:");
-    if (url) {
-      const quill = quillRef.current?.getEditor();
-      const range = quill?.getSelection();
-      if (range) {
-        quill?.insertEmbed(range.index, "image", url, "user");
-      }
-    }
-  };
-
-  const insertarVideo = (quillRef: React.RefObject<ReactQuill>) => {
-    const url = prompt("Pega el enlace de YouTube:");
-    if (url) {
-      const match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w\-]+)/);
-      if (match) {
-        const videoId = match[1];
-        const src = `https://www.youtube.com/embed/${videoId}`;
-        const quill = quillRef.current?.getEditor();
-        const range = quill?.getSelection();
-        if (range) {
-          quill?.clipboard.dangerouslyPasteHTML(
-            range.index,
-            `<iframe width="100%" height="315" src="${src}" frameborder="0" allowfullscreen></iframe>`,
-            "user"
-          );
-        }
-      } else {
-        alert("URL de YouTube no válida");
-      }
-    }
-  };
-
-  const modules = {
-    toolbar: [
-      [{ header: [1, 2, false] }],
-      ["bold", "italic", "underline", "strike"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link"],
-      ["clean"],
-    ],
-  };
-
-  const formats = [
-    "header",
-    "bold", "italic", "underline", "strike",
-    "list", "bullet",
-    "link", "image", "video",
-  ];
-
-  const cargarClientes = async () => {
-    if (!user?.nombre) return;
-    setCargando(true);
-
-    const { data, error } = await supabase
-      .from("clientes")
-      .select("*")
-      .eq("nombre_entrenador", user.nombre);
-
-    if (!error) setClientes(data || []);
-    setCargando(false);
-  };
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dieta, setDieta] = useState("");
+  const [rutina, setRutina] = useState("");
+  const { user } = useAuth();
+  const quillRef = useRef<any>(null);
 
   useEffect(() => {
-    cargarClientes();
+    async function fetchClientes() {
+      const { data, error } = await supabase
+        .from("clientes")
+        .select("*")
+        .eq("entrenador_id", user?.id);
+
+      if (!error && data) {
+        setClientes(data);
+      }
+    }
+    if (user) fetchClientes();
   }, [user]);
 
-  const guardarCambios = async () => {
-    if (!clienteSeleccionado) return;
+  function abrirDialogo(cliente: Cliente) {
+    setClienteSeleccionado(cliente);
+    setDieta(cliente.dieta || "");
+    setRutina(cliente.rutina || "");
+    setIsDialogOpen(true);
+  }
 
+  async function guardarCambios() {
+    if (!clienteSeleccionado) return;
     const { error } = await supabase
       .from("clientes")
-      .update({
-        dieta: clienteSeleccionado.dieta,
-        rutina: clienteSeleccionado.rutina,
-      })
+      .update({ dieta, rutina })
       .eq("id", clienteSeleccionado.id);
-
-    if (error) {
-      console.error("Error al guardar cambios:", error.message);
-      return;
-    }
-
-    setClienteSeleccionado(null);
-    cargarClientes();
-  };
-
-  const clientesFiltrados = clientes.filter((c) =>
-    c.nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
+    if (!error) setIsDialogOpen(false);
+  }
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Mis Clientes</h1>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Clientes</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {clientes.map((cliente) => (
+          <div key={cliente.id} className="border p-4 rounded shadow">
+            <p><strong>Nombre:</strong> {cliente.nombre}</p>
+            <p><strong>Teléfono:</strong> {cliente.telefono}</p>
+            <p><strong>Dirección:</strong> {cliente.direccion}</p>
+            <p><strong>Fecha inicio:</strong> {cliente.fecha_inicio}</p>
+            <Button onClick={() => abrirDialogo(cliente)} className="mt-2">Dieta/Rutina</Button>
+          </div>
+        ))}
+      </div>
 
-      <input
-        type="text"
-        placeholder="Buscar cliente por nombre"
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-        className="w-full border rounded px-3 py-2 mb-6"
-      />
-
-      {cargando ? (
-        <p className="text-gray-500 text-center">Cargando clientes...</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {clientesFiltrados.map((cliente) => (
-            <div
-              key={cliente.id}
-              className="border rounded-xl p-4 shadow bg-white space-y-2"
-            >
-              <p><strong>Nombre:</strong> {cliente.nombre}</p>
-              <p><strong>Teléfono:</strong> {cliente.telefono || "No especificado"}</p>
-              <p><strong>Dirección:</strong> {cliente.direccion || "No especificada"}</p>
-              <p><strong>Fecha de inicio:</strong> {cliente.fecha_inicio || "No especificada"}</p>
-              <Button
-                onClick={() => setClienteSeleccionado(cliente)}
-                className="mt-2"
-              >
-                Ver / Editar Dieta y Rutina
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <Dialog
-        open={!!clienteSeleccionado}
-        onOpenChange={() => setClienteSeleccionado(null)}
-      >
-        <DialogContent className="w-full max-w-full md:max-w-5xl max-h-screen overflow-y-auto">
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Editar dieta y rutina</DialogTitle>
+            <DialogTitle>Editar Dieta y Rutina</DialogTitle>
           </DialogHeader>
 
-          {clienteSeleccionado && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Dieta */}
-                <div>
-                  <label className="block text-sm font-medium mb-1">Dieta</label>
-    <div className="flex gap-2 mb-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => {
-          const url = prompt("Pega el enlace de YouTube:");
-          if (url) {
-            const videoId = url.split("v=")[1]?.split("&")[0];
-            if (videoId && quillRefDieta.current?.getEditor) {
-              const editor = quillRefDieta.current.getEditor();
-              editor.focus();
-              editor.clipboard.dangerouslyPasteHTML(
-                `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
-              );
-            }
-          }
-        }}
-      >
-        Insertar Video
-      </Button>
-    </div>
+          <div className="space-y-4">
+            <div>
+              <label className="font-semibold">Dieta</label>
+              <ReactQuill value={dieta} onChange={setDieta} theme="snow" />
+            </div>
+            <div>
+              <label className="font-semibold">Rutina</label>
+              <ReactQuill ref={quillRef} value={rutina} onChange={setRutina} theme="snow" />
+            </div>
+          </div>
 
-                  <div className="flex gap-2 mb-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => insertarImagen(quillRefDieta)}
-                    >
-                      Insertar Imagen
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => insertarVideo(quillRefDieta)}
-                    >
-                      Insertar Video
-                    </Button>
-                  </div>
-
-                  <ReactQuill
-                    ref={quillRefDieta}
-                    modules={modules}
-                    formats={formats}
-                    value={clienteSeleccionado.dieta || ""}
-                    onChange={(val) =>
-                      setClienteSeleccionado((prev) =>
-                        prev ? { ...prev, dieta: val } : null
-                      )
-                    }
-                  />
-                  <p className="mt-3 font-medium">Vista previa:</p>
-                  <div
-                    className="prose max-w-none bg-gray-50 p-3 rounded mt-2"
-                    dangerouslySetInnerHTML={{
-                      __html: convertirYoutubeEnEmbeds(clienteSeleccionado.dieta || ""),
-                    }}
-                  />
-                </div>
-
-                {/* Rutina */}
-                <div>
-                  <label className="block text-sm font-medium mb-1">Rutina</label>
-    <div className="flex gap-2 mb-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => {
-          const url = prompt("Pega el enlace de YouTube:");
-          if (url) {
-            const videoId = url.split("v=")[1]?.split("&")[0];
-            if (videoId && quillRefRutina.current?.getEditor) {
-              const editor = quillRefRutina.current.getEditor();
-              editor.focus();
-              editor.clipboard.dangerouslyPasteHTML(
-                `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
-              );
-            }
-          }
-        }}
-      >
-        Insertar Video
-      </Button>
-    </div>
-
-                  <div className="flex gap-2 mb-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => insertarImagen(quillRefRutina)}
-                    >
-                      Insertar Imagen
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => insertarVideo(quillRefRutina)}
-                    >
-                      Insertar Video
-                    </Button>
-                  </div>
-
-                  <ReactQuill
-                    ref={quillRefRutina}
-                    modules={modules}
-                    formats={formats}
-                    value={clienteSeleccionado.rutina || ""}
-                    onChange={(val) =>
-                      setClienteSeleccionado((prev) =>
-                        prev ? { ...prev, rutina: val } : null
-                      )
-                    }
-                  />
-                  <p className="mt-3 font-medium">Vista previa:</p>
-                  <div
-                    className="prose max-w-none bg-gray-50 p-3 rounded mt-2"
-                    dangerouslySetInnerHTML={{
-                      __html: convertirYoutubeEnEmbeds(clienteSeleccionado.rutina || ""),
-                    }}
-                  />
-                </div>
-              </div>
-
-              <DialogFooter className="pt-4">
-                <Button onClick={guardarCambios}>Guardar</Button>
-              </DialogFooter>
-            </>
-          )}
+          <DialogFooter>
+            <Button onClick={guardarCambios}>Guardar</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {isDialogOpen && (
+        <button
+          onClick={() => {
+            const url = prompt("Pega aquí el enlace de YouTube:");
+            if (!url) return;
+            const videoId = url.split("v=")[1]?.split("&")[0];
+            if (videoId) {
+              const embed = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+              const editor = quillRef.current?.getEditor?.();
+              if (editor) {
+                editor.clipboard.dangerouslyPasteHTML(editor.getSelection()?.index || 0, embed);
+              } else {
+                alert("Editor no disponible");
+              }
+            } else {
+              alert("URL no válida");
+            }
+          }}
+          style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "20px",
+            background: "#ef4444",
+            color: "white",
+            borderRadius: "9999px",
+            padding: "12px 16px",
+            fontWeight: "bold",
+            fontSize: "16px",
+            zIndex: 9999,
+          }}
+        >
+          + Video
+        </button>
+      )}
     </div>
   );
 }
