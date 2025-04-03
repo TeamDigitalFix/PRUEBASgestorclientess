@@ -186,14 +186,6 @@ export default function Clientes() {
                 {/* Dieta */}
                 <div>
                   <label className="block text-sm font-medium mb-1">Dieta</label>
-  <div className="flex gap-2 mb-2">
-    <Button type="button" variant="outline" onClick={() => insertarImagen(quillRefDieta)}>
-      Insertar Imagen
-    </Button>
-    <Button type="button" variant="outline" onClick={() => insertarVideo(quillRefDieta)}>
-      Insertar Video
-    </Button>
-  </div>
 
                   <div className="flex gap-2 mb-2">
                     <Button
@@ -235,14 +227,6 @@ export default function Clientes() {
                 {/* Rutina */}
                 <div>
                   <label className="block text-sm font-medium mb-1">Rutina</label>
-  <div className="flex gap-2 mb-2">
-    <Button type="button" variant="outline" onClick={() => insertarImagen(quillRefRutina)}>
-      Insertar Imagen
-    </Button>
-    <Button type="button" variant="outline" onClick={() => insertarVideo(quillRefRutina)}>
-      Insertar Video
-    </Button>
-  </div>
 
                   <div className="flex gap-2 mb-2">
                     <Button
