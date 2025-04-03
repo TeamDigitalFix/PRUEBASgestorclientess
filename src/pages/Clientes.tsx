@@ -1,10 +1,28 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Cliente } from "@/types/app";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { supabase } from "@/lib/supabaseClient";
+import Quill from "quill";
+
+// --- Esto permite pegar iframes (YouTube, etc.)
+const BlockEmbed = Quill.import("blots/block/embed");
+
+class IframeBlot extends BlockEmbed {
+  static create(value: string) {
+    const node = super.create() as HTMLElement;
+    node.innerHTML = value;
+    return node;
+  }
+  static value(node: HTMLElement) {
+    return node.innerHTML;
+  }
+}
+IframeBlot.blotName = "iframe";
+IframeBlot.tagName = "div";
+Quill.register(IframeBlot);
 
 interface Props {
   cliente: Cliente;
@@ -23,14 +41,11 @@ export default function EditarPlanModal({ cliente, onClose }: Props) {
       const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([\w-]{11})/);
       if (match) {
         const videoId = match[1];
-        const src = `https://www.youtube.com/embed/${videoId}`;
+        const embedHtml = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
         const quill = quillRef.current?.getEditor();
         const range = quill?.getSelection();
         if (range) {
-          quill.clipboard.dangerouslyPasteHTML(
-            range.index,
-            `<iframe width="100%" height="315" src="${src}" frameborder="0" allowfullscreen></iframe>`
-          );
+          quill.clipboard.dangerouslyPasteHTML(range.index, embedHtml);
         }
       } else {
         alert("URL de YouTube no válida");
@@ -75,30 +90,30 @@ export default function EditarPlanModal({ cliente, onClose }: Props) {
           <div>
             <label className="block font-semibold mb-1">Dieta</label>
             <div className="flex gap-2 mb-2">
-              <Button variant="outline" onClick={() => insertarImagen(quillRefDieta)}>+ Imagen</Button>
-              <Button variant="outline" onClick={() => insertarVideo(quillRefDieta)}>+ Video</Button>
+              <Button size="sm" onClick={() => insertarImagen(quillRefDieta)}>Imagen</Button>
+              <Button size="sm" onClick={() => insertarVideo(quillRefDieta)}>Video</Button>
             </div>
             <ReactQuill
               ref={quillRefDieta}
               value={dieta}
               onChange={setDieta}
               modules={modules}
-              className="bg-white h-60"
+              className="bg-white"
             />
           </div>
 
           <div>
             <label className="block font-semibold mb-1">Rutina</label>
             <div className="flex gap-2 mb-2">
-              <Button variant="outline" onClick={() => insertarImagen(quillRefRutina)}>+ Imagen</Button>
-              <Button variant="outline" onClick={() => insertarVideo(quillRefRutina)}>+ Video</Button>
+              <Button size="sm" onClick={() => insertarImagen(quillRefRutina)}>Imagen</Button>
+              <Button size="sm" onClick={() => insertarVideo(quillRefRutina)}>Video</Button>
             </div>
             <ReactQuill
               ref={quillRefRutina}
               value={rutina}
               onChange={setRutina}
               modules={modules}
-              className="bg-white h-60"
+              className="bg-white"
             />
           </div>
         </div>
