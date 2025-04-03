@@ -186,6 +186,27 @@ export default function Clientes() {
                 {/* Dieta */}
                 <div>
                   <label className="block text-sm font-medium mb-1">Dieta</label>
+    <div className="flex gap-2 mb-2">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => {
+          const url = prompt("Pega el enlace de YouTube:");
+          if (url) {
+            const videoId = url.split("v=")[1]?.split("&")[0];
+            if (videoId && quillRefDieta.current?.getEditor) {
+              const editor = quillRefDieta.current.getEditor();
+              editor.focus();
+              editor.clipboard.dangerouslyPasteHTML(
+                `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
+              );
+            }
+          }
+        }}
+      >
+        Insertar Video
+      </Button>
+    </div>
 
                   <div className="flex gap-2 mb-2">
                     <Button
@@ -227,6 +248,27 @@ export default function Clientes() {
                 {/* Rutina */}
                 <div>
                   <label className="block text-sm font-medium mb-1">Rutina</label>
+    <div className="flex gap-2 mb-2">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => {
+          const url = prompt("Pega el enlace de YouTube:");
+          if (url) {
+            const videoId = url.split("v=")[1]?.split("&")[0];
+            if (videoId && quillRefRutina.current?.getEditor) {
+              const editor = quillRefRutina.current.getEditor();
+              editor.focus();
+              editor.clipboard.dangerouslyPasteHTML(
+                `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
+              );
+            }
+          }
+        }}
+      >
+        Insertar Video
+      </Button>
+    </div>
 
                   <div className="flex gap-2 mb-2">
                     <Button
