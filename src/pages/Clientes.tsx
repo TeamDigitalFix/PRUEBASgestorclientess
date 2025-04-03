@@ -26,7 +26,6 @@ interface Cliente {
   rutina?: string;
 }
 
-// Convierte links de YouTube en iframes
 function convertirYoutubeEnEmbeds(html: string): string {
   const regex = /https:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([\w\-]+)/g;
   return html.replace(regex, (match, _, __, videoId) => {
@@ -41,9 +40,11 @@ export default function Clientes() {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [cargando, setCargando] = useState(false);
-  const quillRef = useRef<ReactQuill>(null);
 
-  const imageHandler = () => {
+  const quillRefDieta = useRef<ReactQuill>(null);
+  const quillRefRutina = useRef<ReactQuill>(null);
+
+  const insertarImagen = (quillRef: React.RefObject<ReactQuill>) => {
     const url = prompt("Pega el enlace de la imagen:");
     if (url) {
       const quill = quillRef.current?.getEditor();
@@ -54,7 +55,7 @@ export default function Clientes() {
     }
   };
 
-  const videoHandler = () => {
+  const insertarVideo = (quillRef: React.RefObject<ReactQuill>) => {
     const url = prompt("Pega el enlace de YouTube:");
     if (url) {
       const match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w\-]+)/);
@@ -77,20 +78,13 @@ export default function Clientes() {
   };
 
   const modules = {
-    toolbar: {
-      container: [
-        [{ header: [1, 2, false] }],
-        ["bold", "italic", "underline", "strike"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["link"],
-        ["clean"],
-        ["customImage", "customVideo"], // botones personalizados
-      ],
-      handlers: {
-        customImage: imageHandler,
-        customVideo: videoHandler,
-      },
-    },
+    toolbar: [
+      [{ header: [1, 2, false] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link"],
+      ["clean"],
+    ],
   };
 
   const formats = [
@@ -192,8 +186,26 @@ export default function Clientes() {
                 {/* Dieta */}
                 <div>
                   <label className="block text-sm font-medium mb-1">Dieta</label>
+
+                  <div className="flex gap-2 mb-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => insertarImagen(quillRefDieta)}
+                    >
+                      Insertar Imagen
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => insertarVideo(quillRefDieta)}
+                    >
+                      Insertar Video
+                    </Button>
+                  </div>
+
                   <ReactQuill
-                    ref={quillRef}
+                    ref={quillRefDieta}
                     modules={modules}
                     formats={formats}
                     value={clienteSeleccionado.dieta || ""}
@@ -215,8 +227,26 @@ export default function Clientes() {
                 {/* Rutina */}
                 <div>
                   <label className="block text-sm font-medium mb-1">Rutina</label>
+
+                  <div className="flex gap-2 mb-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => insertarImagen(quillRefRutina)}
+                    >
+                      Insertar Imagen
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => insertarVideo(quillRefRutina)}
+                    >
+                      Insertar Video
+                    </Button>
+                  </div>
+
                   <ReactQuill
-                    ref={quillRef}
+                    ref={quillRefRutina}
                     modules={modules}
                     formats={formats}
                     value={clienteSeleccionado.rutina || ""}
