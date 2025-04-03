@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Cliente } from "@/types/app";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { supabase } from "@/lib/supabaseClient";
@@ -75,30 +75,30 @@ export default function EditarPlanModal({ cliente, onClose }: Props) {
           <div>
             <label className="block font-semibold mb-1">Dieta</label>
             <div className="flex gap-2 mb-2">
-              <Button size="sm" onClick={() => insertarImagen(quillRefDieta)}>Imagen</Button>
-              <Button size="sm" onClick={() => insertarVideo(quillRefDieta)}>Video</Button>
+              <Button variant="outline" onClick={() => insertarImagen(quillRefDieta)}>+ Imagen</Button>
+              <Button variant="outline" onClick={() => insertarVideo(quillRefDieta)}>+ Video</Button>
             </div>
             <ReactQuill
               ref={quillRefDieta}
               value={dieta}
               onChange={setDieta}
               modules={modules}
-              className="bg-white"
+              className="bg-white h-60"
             />
           </div>
 
           <div>
             <label className="block font-semibold mb-1">Rutina</label>
             <div className="flex gap-2 mb-2">
-              <Button size="sm" onClick={() => insertarImagen(quillRefRutina)}>Imagen</Button>
-              <Button size="sm" onClick={() => insertarVideo(quillRefRutina)}>Video</Button>
+              <Button variant="outline" onClick={() => insertarImagen(quillRefRutina)}>+ Imagen</Button>
+              <Button variant="outline" onClick={() => insertarVideo(quillRefRutina)}>+ Video</Button>
             </div>
             <ReactQuill
               ref={quillRefRutina}
               value={rutina}
               onChange={setRutina}
               modules={modules}
-              className="bg-white"
+              className="bg-white h-60"
             />
           </div>
         </div>
