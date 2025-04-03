@@ -71,14 +71,16 @@ export default function DashboardCliente() {
     window.location.href = "https://rutinaydieta.vercel.app/";
   };
 
-  const procesarHTML = (html: string | undefined) => {
-    if (!html) return "<p>Sin contenido</p>";
-    return html.replace(
-      /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/g,
-      (_match, videoId) =>
-        `<iframe width="100%" height="200" style="border-radius: 12px; margin: 1rem 0;" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
-    );
-  };
+ const procesarHTML = (html: string | undefined) => {
+  if (!html) return "<p>Sin contenido</p>";
+
+  return html.replace(
+    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/g,
+    (_match, videoId) =>
+      `<iframe width="100%" height="200" style="border-radius: 12px; margin: 1rem 0;" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
+  );
+};
+
 
   return (
     <div
