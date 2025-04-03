@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import "quill/dist/quill.core.css";
+import "quill/dist/quill.snow.css";
 
 interface Cliente {
   id: string;
@@ -22,13 +24,21 @@ interface Cliente {
   rutina?: string;
 }
 
+// Función para reemplazar links de YouTube por iframes
+function convertirYoutubeEnEmbeds(html: string): string {
+  const regex = /https:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([\w\-]+)/g;
+  return html.replace(regex, (match, _, __, videoId) => {
+    const src = `https://www.youtube.com/embed/${videoId}`;
+    return `<iframe width="100%" height="315" src="${src}" frameborder="0" allowfullscreen></iframe>`;
+  });
+}
+
 export default function Clientes() {
   const { user } = useAuth();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
   const [busqueda, setBusqueda] = useState("");
 
-  // Toolbar y formatos para ReactQuill
   const modules = {
     toolbar: [
       [{ header: [1, 2, false] }],
@@ -127,39 +137,55 @@ export default function Clientes() {
           </DialogHeader>
 
           {clienteSeleccionado && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Dieta</label>
-                <ReactQuill
-                  modules={modules}
-                  formats={formats}
-                  value={clienteSeleccionado.dieta || ""}
-                  onChange={(val) =>
-                    setClienteSeleccionado((prev) =>
-                      prev ? { ...prev, dieta: val } : null
-                    )
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Rutina</label>
-                <ReactQuill
-                  modules={modules}
-                  formats={formats}
-                  value={clienteSeleccionado.rutina || ""}
-                  onChange={(val) =>
-                    setClienteSeleccionado((prev) =>
-                      prev ? { ...prev, rutina: val } : null
-                    )
-                  }
-                />
-              </div>
-            </div>
-          )}
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Dieta</label>
+                  <ReactQuill
+                    modules={modules}
+                    formats={formats}
+                    value={clienteSeleccionado.dieta || ""}
+                    onChange={(val) =>
+                      setClienteSeleccionado((prev) =>
+                        prev ? { ...prev, dieta: val } : null
+                      )
+                    }
+                  />
+                  <p className="mt-4 font-medium">Vista previa:</p>
+                  <div
+                    className="prose max-w-none bg-gray-50 p-3 rounded"
+                    dangerouslySetInnerHTML={{
+                      __html: convertirYoutubeEnEmbeds(clienteSeleccionado.dieta || ""),
+                    }}
+                  />
+                </div>
 
-          <DialogFooter className="pt-4">
-            <Button onClick={guardarCambios}>Guardar</Button>
-          </DialogFooter>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Rutina</label>
+                  <ReactQuill
+                    modules={modules}
+                    formats={formats}
+                    value={clienteSeleccionado.rutina || ""}
+                    onChange={(val) =>
+                      setClienteSeleccionado((prev) =>
+                        prev ? { ...prev, rutina: val } : null
+                      )
+                    }
+                  />
+                  <p className="mt-4 font-medium">Vista previa:</p>
+                  <div
+                    className="prose max-w-none bg-gray-50 p-3 rounded"
+                    dangerouslySetInnerHTML={{
+                      __html: convertirYoutubeEnEmbeds(clienteSeleccionado.rutina || ""),
+                    }}
+                  />
+                </div>
+              </div>
+              <DialogFooter className="pt-4">
+                <Button onClick={guardarCambios}>Guardar</Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
