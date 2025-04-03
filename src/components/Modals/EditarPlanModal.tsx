@@ -1,6 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Cliente } from "@/types/app";
+import { useEffect, useRef, useState } from "react";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+import { supabase } from "@/lib/supabaseClient";
 
 interface Props {
   cliente: Cliente;
@@ -8,21 +12,103 @@ interface Props {
 }
 
 export default function EditarPlanModal({ cliente, onClose }: Props) {
+  const [dieta, setDieta] = useState(cliente.dieta || "");
+  const [rutina, setRutina] = useState(cliente.rutina || "");
+  const quillRefDieta = useRef<ReactQuill>(null);
+  const quillRefRutina = useRef<ReactQuill>(null);
+
+  const insertarVideo = (quillRef: React.RefObject<ReactQuill>) => {
+    const url = prompt("Pega el enlace de YouTube:");
+    if (url) {
+      const match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w\-]+)/);
+      if (match) {
+        const videoId = match[1];
+        const src = `https://www.youtube.com/embed/${videoId}`;
+        const quill = quillRef.current?.getEditor();
+        const range = quill?.getSelection();
+        if (range) {
+          quill?.clipboard.dangerouslyPasteHTML(
+            range.index,
+            `<iframe width="100%" height="315" src="${src}" frameborder="0" allowfullscreen></iframe>`
+          );
+        }
+      } else {
+        alert("URL de YouTube no válida");
+      }
+    }
+  };
+
+  const insertarImagen = (quillRef: React.RefObject<ReactQuill>) => {
+    const url = prompt("Pega el enlace de la imagen:");
+    if (url) {
+      const quill = quillRef.current?.getEditor();
+      const range = quill?.getSelection();
+      if (range) {
+        quill?.insertEmbed(range.index, "image", url);
+      }
+    }
+  };
+
+  const guardarCambios = async () => {
+    await supabase
+      .from("clientes")
+      .update({ dieta, rutina })
+      .eq("id", cliente.id);
+    onClose();
+  };
+
+  const modules = {
+    toolbar: [
+      [{ header: [1, 2, false] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link"],
+      ["clean"],
+    ],
+  };
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Editar Plan - {cliente.nombre}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Aquí puedes agregar campos para editar el plan */}
-          <p className="text-muted-foreground">Aquí se editarán los datos del plan del cliente en futuras versiones.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <div className="flex gap-2 mb-2">
+              <Button variant="secondary" onClick={() => insertarImagen(quillRefDieta)}>Imagen</Button>
+              <Button variant="secondary" onClick={() => insertarVideo(quillRefDieta)}>Video</Button>
+            </div>
+            <label className="block font-semibold mb-1">Dieta</label>
+            <ReactQuill
+              ref={quillRefDieta}
+              value={dieta}
+              onChange={setDieta}
+              modules={modules}
+              className="bg-white"
+            />
+          </div>
+
+          <div>
+            <div className="flex gap-2 mb-2">
+              <Button variant="secondary" onClick={() => insertarImagen(quillRefRutina)}>Imagen</Button>
+              <Button variant="secondary" onClick={() => insertarVideo(quillRefRutina)}>Video</Button>
+            </div>
+            <label className="block font-semibold mb-1">Rutina</label>
+            <ReactQuill
+              ref={quillRefRutina}
+              value={rutina}
+              onChange={setRutina}
+              modules={modules}
+              className="bg-white"
+            />
+          </div>
         </div>
 
-        <div className="flex justify-end">
-          <Button onClick={onClose}>Cerrar</Button>
-        </div>
+        <DialogFooter className="pt-4">
+          <Button onClick={guardarCambios}>Guardar</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
