@@ -28,16 +28,23 @@ export default function Clientes() {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
   const [busqueda, setBusqueda] = useState("");
 
-  // Toolbar con opción para insertar enlaces, imágenes y videos
+  // Toolbar y formatos para ReactQuill
   const modules = {
     toolbar: [
       [{ header: [1, 2, false] }],
-      ["bold", "italic", "underline"],
-      ["link", "image", "video"],
+      ["bold", "italic", "underline", "strike"],
       [{ list: "ordered" }, { list: "bullet" }],
+      ["link", "image", "video"],
       ["clean"],
     ],
   };
+
+  const formats = [
+    "header",
+    "bold", "italic", "underline", "strike",
+    "list", "bullet",
+    "link", "image", "video",
+  ];
 
   const cargarClientes = async () => {
     if (!user?.nombre) return;
@@ -125,6 +132,7 @@ export default function Clientes() {
                 <label className="block text-sm font-medium mb-1">Dieta</label>
                 <ReactQuill
                   modules={modules}
+                  formats={formats}
                   value={clienteSeleccionado.dieta || ""}
                   onChange={(val) =>
                     setClienteSeleccionado((prev) =>
@@ -137,6 +145,7 @@ export default function Clientes() {
                 <label className="block text-sm font-medium mb-1">Rutina</label>
                 <ReactQuill
                   modules={modules}
+                  formats={formats}
                   value={clienteSeleccionado.rutina || ""}
                   onChange={(val) =>
                     setClienteSeleccionado((prev) =>
