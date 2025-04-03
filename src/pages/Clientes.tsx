@@ -11,10 +11,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import "@/lib/quill-icons-fix"; // ← esto antes de usar ReactQuill
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "quill/dist/quill.core.css";
 import "quill/dist/quill.snow.css";
+
 
 interface Cliente {
   id: string;
