@@ -40,6 +40,7 @@ export default function Clientes() {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [modalAbierto, setModalAbierto] = useState<"dieta" | "rutina" | null>(null);
 
   const quillRefDieta = useRef<ReactQuill>(null);
   const quillRefRutina = useRef<ReactQuill>(null);
@@ -101,9 +102,9 @@ export default function Clientes() {
     const { data, error } = await supabase
       .from("clientes")
       .select("*")
-      .eq("nombre_entrenador", user.nombre);
+      .eq("entrenador_id", user.id);
 
-    if (!error) setClientes(data || []);
+    if (!error && data) setClientes(data);
     setCargando(false);
   };
 
@@ -111,166 +112,49 @@ export default function Clientes() {
     cargarClientes();
   }, [user]);
 
-  const guardarCambios = async () => {
-    if (!clienteSeleccionado) return;
-
-    const { error } = await supabase
-      .from("clientes")
-      .update({
-        dieta: clienteSeleccionado.dieta,
-        rutina: clienteSeleccionado.rutina,
-      })
-      .eq("id", clienteSeleccionado.id);
-
-    if (error) {
-      console.error("Error al guardar cambios:", error.message);
-      return;
-    }
-
-    setClienteSeleccionado(null);
-    cargarClientes();
-  };
-
-  const clientesFiltrados = clientes.filter((c) =>
-    c.nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
-
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Mis Clientes</h1>
+    <div>
+      {/* Tu buscador y lista de clientes... */}
 
-      <input
-        type="text"
-        placeholder="Buscar cliente por nombre"
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-        className="w-full border rounded px-3 py-2 mb-6"
-      />
-
-      {cargando ? (
-        <p className="text-gray-500 text-center">Cargando clientes...</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {clientesFiltrados.map((cliente) => (
-            <div
-              key={cliente.id}
-              className="border rounded-xl p-4 shadow bg-white space-y-2"
-            >
-              <p><strong>Nombre:</strong> {cliente.nombre}</p>
-              <p><strong>Teléfono:</strong> {cliente.telefono || "No especificado"}</p>
-              <p><strong>Dirección:</strong> {cliente.direccion || "No especificada"}</p>
-              <p><strong>Fecha de inicio:</strong> {cliente.fecha_inicio || "No especificada"}</p>
-              <Button
-                onClick={() => setClienteSeleccionado(cliente)}
-                className="mt-2"
-              >
-                Ver / Editar Dieta y Rutina
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <Dialog
-        open={!!clienteSeleccionado}
-        onOpenChange={() => setClienteSeleccionado(null)}
-      >
-        <DialogContent className="w-full max-w-full md:max-w-5xl max-h-screen overflow-y-auto">
+      <Dialog open={!!modalAbierto} onOpenChange={() => setModalAbierto(null)}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar dieta y rutina</DialogTitle>
+            <DialogTitle>Editar Dieta y Rutina</DialogTitle>
           </DialogHeader>
 
-          {clienteSeleccionado && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Dieta */}
-                <div>
-                  <label className="block text-sm font-medium mb-1">Dieta</label>
-
-                  <div className="flex gap-2 mb-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => insertarImagen(quillRefDieta)}
-                    >
-                      Insertar Imagen
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => insertarVideo(quillRefDieta)}
-                    >
-                      Insertar Video
-                    </Button>
-                  </div>
-
-                  <ReactQuill
-                    ref={quillRefDieta}
-                    modules={modules}
-                    formats={formats}
-                    value={clienteSeleccionado.dieta || ""}
-                    onChange={(val) =>
-                      setClienteSeleccionado((prev) =>
-                        prev ? { ...prev, dieta: val } : null
-                      )
-                    }
-                  />
-                  <p className="mt-3 font-medium">Vista previa:</p>
-                  <div
-                    className="prose max-w-none bg-gray-50 p-3 rounded mt-2"
-                    dangerouslySetInnerHTML={{
-                      __html: convertirYoutubeEnEmbeds(clienteSeleccionado.dieta || ""),
-                    }}
-                  />
-                </div>
-
-                {/* Rutina */}
-                <div>
-                  <label className="block text-sm font-medium mb-1">Rutina</label>
-
-                  <div className="flex gap-2 mb-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => insertarImagen(quillRefRutina)}
-                    >
-                      Insertar Imagen
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => insertarVideo(quillRefRutina)}
-                    >
-                      Insertar Video
-                    </Button>
-                  </div>
-
-                  <ReactQuill
-                    ref={quillRefRutina}
-                    modules={modules}
-                    formats={formats}
-                    value={clienteSeleccionado.rutina || ""}
-                    onChange={(val) =>
-                      setClienteSeleccionado((prev) =>
-                        prev ? { ...prev, rutina: val } : null
-                      )
-                    }
-                  />
-                  <p className="mt-3 font-medium">Vista previa:</p>
-                  <div
-                    className="prose max-w-none bg-gray-50 p-3 rounded mt-2"
-                    dangerouslySetInnerHTML={{
-                      __html: convertirYoutubeEnEmbeds(clienteSeleccionado.rutina || ""),
-                    }}
-                  />
-                </div>
+          {modalAbierto && (
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2 mb-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => insertarImagen(
+                    modalAbierto === "dieta" ? quillRefDieta : quillRefRutina
+                  )}
+                >
+                  Imagen
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => insertarVideo(
+                    modalAbierto === "dieta" ? quillRefDieta : quillRefRutina
+                  )}
+                >
+                  Video
+                </Button>
               </div>
-
-              <DialogFooter className="pt-4">
-                <Button onClick={guardarCambios}>Guardar</Button>
-              </DialogFooter>
-            </>
+              <ReactQuill
+                ref={modalAbierto === "dieta" ? quillRefDieta : quillRefRutina}
+                theme="snow"
+                modules={modules}
+                formats={formats}
+                defaultValue={modalAbierto === "dieta" ? clienteSeleccionado?.dieta || "" : clienteSeleccionado?.rutina || ""}
+              />
+            </div>
           )}
+
+          <DialogFooter>
+            <Button onClick={() => setModalAbierto(null)}>Guardar</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
