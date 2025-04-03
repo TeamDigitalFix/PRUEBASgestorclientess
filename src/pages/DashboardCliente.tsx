@@ -30,7 +30,6 @@ interface Estilo {
   icono_rutina_url?: string;
 }
 
-
 export default function DashboardCliente() {
   const { user } = useAuth();
   const [cliente, setCliente] = useState<Cliente | null>(null);
@@ -77,7 +76,7 @@ export default function DashboardCliente() {
     return html.replace(
       /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/g,
       (_match, videoId) =>
-        `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
+        `<iframe width="100%" height="200" style="border-radius: 12px; margin: 1rem 0;" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
     );
   };
 
