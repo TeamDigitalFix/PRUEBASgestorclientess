@@ -1,4 +1,35 @@
-// ... (importaciones y demás sin cambios)
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { LogOut } from "lucide-react";
+
+interface Cliente {
+  id: string;
+  nombre: string;
+  usuario: string;
+  fecha_inicio?: string;
+  entrenador?: string;
+  dieta?: string;
+  rutina?: string;
+  nombre_entrenador?: string;
+  telefono_entrenador?: string;
+  entrenador_id?: string;
+}
+
+interface Estilo {
+  color_primario: string;
+  color_secundario: string;
+  color_texto: string;
+  imagen_logo: string;
+  imagen_fondo: string;
+  imagen_cabecera: string;
+  mensaje_bienvenida: string;
+  icono_dieta_url?: string;
+  icono_rutina_url?: string;
+}
+
 
 export default function DashboardCliente() {
   const { user } = useAuth();
