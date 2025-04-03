@@ -1,34 +1,4 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { LogOut } from "lucide-react";
-
-interface Cliente {
-  id: string;
-  nombre: string;
-  usuario: string;
-  fecha_inicio?: string;
-  entrenador?: string;
-  dieta?: string;
-  rutina?: string;
-  nombre_entrenador?: string;
-  telefono_entrenador?: string;
-  entrenador_id?: string;
-}
-
-interface Estilo {
-  color_primario: string;
-  color_secundario: string;
-  color_texto: string;
-  imagen_logo: string;
-  imagen_fondo: string;
-  imagen_cabecera: string;
-  mensaje_bienvenida: string;
-  icono_dieta_url?: string;
-  icono_rutina_url?: string;
-}
+// ... (importaciones y demás sin cambios)
 
 export default function DashboardCliente() {
   const { user } = useAuth();
@@ -69,6 +39,15 @@ export default function DashboardCliente() {
 
   const cerrarSesion = () => {
     window.location.href = "https://rutinaydieta.vercel.app/";
+  };
+
+  const procesarHTML = (html: string | undefined) => {
+    if (!html) return "<p>Sin contenido</p>";
+    return html.replace(
+      /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/g,
+      (_match, videoId) =>
+        `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
+    );
   };
 
   return (
@@ -122,39 +101,36 @@ export default function DashboardCliente() {
         </div>
       </div>
 
-     {/* Botones flotantes con texto centrado */}
-<div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex gap-14 z-50">
-  {/* Botón DIETA */}
-  <div className="flex flex-col items-center">
-    <span className="text-white text-sm font-semibold mb-2">DIETA</span>
-    <button
-      onClick={() => setMostrarDieta(true)}
-      className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
-    >
-      <img
-        src={estilo?.icono_dieta_url || "https://cdn-icons-png.flaticon.com/512/706/706195.png"}
-        alt="Dieta"
-        className="h-10 w-10"
-      />
-    </button>
-  </div>
+      {/* Botones flotantes */}
+      <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex gap-14 z-50">
+        <div className="flex flex-col items-center">
+          <span className="text-white text-sm font-semibold mb-2">DIETA</span>
+          <button
+            onClick={() => setMostrarDieta(true)}
+            className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
+          >
+            <img
+              src={estilo?.icono_dieta_url || "https://cdn-icons-png.flaticon.com/512/706/706195.png"}
+              alt="Dieta"
+              className="h-10 w-10"
+            />
+          </button>
+        </div>
 
-  {/* Botón RUTINA */}
-  <div className="flex flex-col items-center">
-    <span className="text-white text-sm font-semibold mb-2">RUTINA</span>
-    <button
-      onClick={() => setMostrarRutina(true)}
-      className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
-    >
-      <img
-        src={estilo?.icono_rutina_url || "https://cdn-icons-png.flaticon.com/512/2780/2780119.png"}
-        alt="Rutina"
-        className="h-10 w-10"
-      />
-    </button>
-  </div>
-</div>
-
+        <div className="flex flex-col items-center">
+          <span className="text-white text-sm font-semibold mb-2">RUTINA</span>
+          <button
+            onClick={() => setMostrarRutina(true)}
+            className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
+          >
+            <img
+              src={estilo?.icono_rutina_url || "https://cdn-icons-png.flaticon.com/512/2780/2780119.png"}
+              alt="Rutina"
+              className="h-10 w-10"
+            />
+          </button>
+        </div>
+      </div>
 
       {/* Modal Dieta */}
       <Dialog open={mostrarDieta} onOpenChange={setMostrarDieta}>
@@ -162,12 +138,10 @@ export default function DashboardCliente() {
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">Dieta actual</DialogTitle>
           </DialogHeader>
-         <div
-  className="prose max-w-full p-4 bg-white text-black rounded-lg shadow-inner overflow-y-auto max-h-[60vh] text-base [&_p]:my-1 [&_ul]:my-2 [&_li]:my-1 [&_h1]:mb-2 [&_h2]:mb-2"
-  dangerouslySetInnerHTML={{
-    __html: cliente?.dieta || "<p>Sin contenido</p>",
-  }}
-/>
+          <div
+            className="prose max-w-full p-4 bg-white text-black rounded-lg shadow-inner overflow-y-auto max-h-[60vh] text-base [&_p]:my-1 [&_ul]:my-2 [&_li]:my-1 [&_h1]:mb-2 [&_h2]:mb-2"
+            dangerouslySetInnerHTML={{ __html: procesarHTML(cliente?.dieta) }}
+          />
         </DialogContent>
       </Dialog>
 
@@ -178,12 +152,9 @@ export default function DashboardCliente() {
             <DialogTitle className="text-lg font-semibold">Rutina actual</DialogTitle>
           </DialogHeader>
           <div
-  className="prose max-w-full p-4 bg-white text-black rounded-lg shadow-inner overflow-y-auto max-h-[60vh] text-base [&_p]:my-1 [&_ul]:my-2 [&_li]:my-1 [&_h1]:mb-2 [&_h2]:mb-2"
-  dangerouslySetInnerHTML={{
-    __html: cliente?.rutina || "<p>Sin contenido</p>",
-  }}
-/>
-
+            className="prose max-w-full p-4 bg-white text-black rounded-lg shadow-inner overflow-y-auto max-h-[60vh] text-base [&_p]:my-1 [&_ul]:my-2 [&_li]:my-1 [&_h1]:mb-2 [&_h2]:mb-2"
+            dangerouslySetInnerHTML={{ __html: procesarHTML(cliente?.rutina) }}
+          />
         </DialogContent>
       </Dialog>
     </div>
