@@ -8,6 +8,38 @@ import { AlertTriangle, ArrowLeft, User } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
+
+  const insertarImagen = () => {
+    const url = prompt("Pega el enlace de la imagen:");
+    if (url) {
+      const quill = window.quillEditor;
+      const range = quill?.getSelection();
+      if (range) {
+        quill.insertEmbed(range.index, "image", url);
+      }
+    }
+  };
+
+  const insertarVideo = () => {
+    const url = prompt("Pega el enlace de YouTube:");
+    const match = url?.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w\-]+)/);
+    if (match) {
+      const videoId = match[1];
+      const src = `https://www.youtube.com/embed/${videoId}`;
+      const quill = window.quillEditor;
+      const range = quill?.getSelection();
+      if (range) {
+        quill.clipboard.dangerouslyPasteHTML(
+          range.index,
+          `<iframe width="100%" height="315" src="${src}" frameborder="0" allowfullscreen></iframe>`
+        );
+      }
+    } else {
+      alert("URL de YouTube no válida");
+    }
+  };
+
+
 export default function DetalleCliente() {
   const { id } = useParams<{ id: string }>();
   const { user, getCliente } = useAuth();
