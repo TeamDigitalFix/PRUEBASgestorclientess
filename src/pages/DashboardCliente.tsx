@@ -122,29 +122,39 @@ export default function DashboardCliente() {
         </div>
       </div>
 
-      {/* Botones flotantes */}
-      <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex gap-6 z-50">
-        <button
-          onClick={() => setMostrarDieta(true)}
-          className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
-        >
-          <img
-            src={estilo?.icono_dieta_url || "https://cdn-icons-png.flaticon.com/512/706/706195.png"}
-            alt="Dieta"
-            className="h-10 w-10"
-          />
-        </button>
-        <button
-          onClick={() => setMostrarRutina(true)}
-          className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
-        >
-          <img
-            src={estilo?.icono_rutina_url || "https://cdn-icons-png.flaticon.com/512/2780/2780119.png"}
-            alt="Rutina"
-            className="h-10 w-10"
-          />
-        </button>
-      </div>
+     {/* Botones flotantes con texto centrado */}
+<div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex gap-14 z-50">
+  {/* Botón DIETA */}
+  <div className="flex flex-col items-center">
+    <span className="text-white text-sm font-semibold mb-2">DIETA</span>
+    <button
+      onClick={() => setMostrarDieta(true)}
+      className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
+    >
+      <img
+        src={estilo?.icono_dieta_url || "https://cdn-icons-png.flaticon.com/512/706/706195.png"}
+        alt="Dieta"
+        className="h-10 w-10"
+      />
+    </button>
+  </div>
+
+  {/* Botón RUTINA */}
+  <div className="flex flex-col items-center">
+    <span className="text-white text-sm font-semibold mb-2">RUTINA</span>
+    <button
+      onClick={() => setMostrarRutina(true)}
+      className="bg-white rounded-full p-3 shadow-lg hover:scale-105 transition"
+    >
+      <img
+        src={estilo?.icono_rutina_url || "https://cdn-icons-png.flaticon.com/512/2780/2780119.png"}
+        alt="Rutina"
+        className="h-10 w-10"
+      />
+    </button>
+  </div>
+</div>
+
 
       {/* Modal Dieta */}
       <Dialog open={mostrarDieta} onOpenChange={setMostrarDieta}>
@@ -152,12 +162,12 @@ export default function DashboardCliente() {
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">Dieta actual</DialogTitle>
           </DialogHeader>
-          <div
-            className="prose prose-lg max-w-full p-4 bg-white text-black rounded-lg shadow-inner overflow-y-auto max-h-[60vh]"
-            dangerouslySetInnerHTML={{
-              __html: cliente?.dieta || "<p>Sin contenido</p>",
-            }}
-          />
+         <div
+  className="prose max-w-full p-4 bg-white text-black rounded-lg shadow-inner overflow-y-auto max-h-[60vh] text-base [&_p]:my-1 [&_ul]:my-2 [&_li]:my-1 [&_h1]:mb-2 [&_h2]:mb-2"
+  dangerouslySetInnerHTML={{
+    __html: cliente?.dieta || "<p>Sin contenido</p>",
+  }}
+/>
         </DialogContent>
       </Dialog>
 
@@ -168,11 +178,12 @@ export default function DashboardCliente() {
             <DialogTitle className="text-lg font-semibold">Rutina actual</DialogTitle>
           </DialogHeader>
           <div
-            className="prose prose-lg max-w-full p-4 bg-white text-black rounded-lg shadow-inner overflow-y-auto max-h-[60vh]"
-            dangerouslySetInnerHTML={{
-              __html: cliente?.rutina || "<p>Sin contenido</p>",
-            }}
-          />
+  className="prose max-w-full p-4 bg-white text-black rounded-lg shadow-inner overflow-y-auto max-h-[60vh] text-base [&_p]:my-1 [&_ul]:my-2 [&_li]:my-1 [&_h1]:mb-2 [&_h2]:mb-2"
+  dangerouslySetInnerHTML={{
+    __html: cliente?.rutina || "<p>Sin contenido</p>",
+  }}
+/>
+
         </DialogContent>
       </Dialog>
     </div>
