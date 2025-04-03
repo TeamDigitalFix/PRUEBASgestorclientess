@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import "@/lib/quill-icons-fix"; // ← esto antes de usar ReactQuill
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "quill/dist/quill.core.css";
 import "quill/dist/quill.snow.css";
-
 
 interface Cliente {
   id: string;
@@ -43,15 +41,56 @@ export default function Clientes() {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [cargando, setCargando] = useState(false);
+  const quillRef = useRef<ReactQuill>(null);
+
+  const imageHandler = () => {
+    const url = prompt("Pega el enlace de la imagen:");
+    if (url) {
+      const quill = quillRef.current?.getEditor();
+      const range = quill?.getSelection();
+      if (range) {
+        quill?.insertEmbed(range.index, "image", url, "user");
+      }
+    }
+  };
+
+  const videoHandler = () => {
+    const url = prompt("Pega el enlace de YouTube:");
+    if (url) {
+      const match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w\-]+)/);
+      if (match) {
+        const videoId = match[1];
+        const src = `https://www.youtube.com/embed/${videoId}`;
+        const quill = quillRef.current?.getEditor();
+        const range = quill?.getSelection();
+        if (range) {
+          quill?.clipboard.dangerouslyPasteHTML(
+            range.index,
+            `<iframe width="100%" height="315" src="${src}" frameborder="0" allowfullscreen></iframe>`,
+            "user"
+          );
+        }
+      } else {
+        alert("URL de YouTube no válida");
+      }
+    }
+  };
 
   const modules = {
-    toolbar: [
-      [{ header: [1, 2, false] }],
-      ["bold", "italic", "underline", "strike"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link", "image", "video"],
-      ["clean"],
-    ],
+    toolbar: {
+      container: [
+        [{ header: [1, 2, false] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["link"],
+        ["clean"],
+        ["customImage", "customVideo"], // botones personalizados
+      ],
+      handlers: {
+        customImage: imageHandler,
+        customVideo: videoHandler,
+      },
+    },
   };
 
   const formats = [
@@ -138,7 +177,6 @@ export default function Clientes() {
         </div>
       )}
 
-      {/* Modal para editar dieta y rutina */}
       <Dialog
         open={!!clienteSeleccionado}
         onOpenChange={() => setClienteSeleccionado(null)}
@@ -155,6 +193,7 @@ export default function Clientes() {
                 <div>
                   <label className="block text-sm font-medium mb-1">Dieta</label>
                   <ReactQuill
+                    ref={quillRef}
                     modules={modules}
                     formats={formats}
                     value={clienteSeleccionado.dieta || ""}
@@ -177,6 +216,7 @@ export default function Clientes() {
                 <div>
                   <label className="block text-sm font-medium mb-1">Rutina</label>
                   <ReactQuill
+                    ref={quillRef}
                     modules={modules}
                     formats={formats}
                     value={clienteSeleccionado.rutina || ""}
